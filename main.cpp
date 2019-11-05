@@ -7,7 +7,7 @@ int main( int argc, char** argv ){
   src = imread( argv[1], 1 );
 
   /// Convert image to gray and blur it
-  cvtColor( src, src_gray, CV_BGR2GRAY );
+  cvtColor( src, src_gray, COLOR_BGR2GRAY );
   blur( src_gray, src_gray, Size(3,3) );
 
   /// Create Window
@@ -26,13 +26,15 @@ int main( int argc, char** argv ){
 void thresh_callback(int, void* ){
   
   Mat canny_output;
+  Mat bin_output;
   vector< vector<Point> > contours;
   vector<Vec4i> hierarchy;
-
+  
+  double thres = threshold(src_gray, bin_output, 0, 255, THRESH_OTSU);
   /// Detect edges using canny
   Canny( src_gray, canny_output, thresh, thresh*2, 3 );
   /// Find contours
-  findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+  findContours( bin_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
   /// Find corner candidates
   vector<int> corner_candidates;
@@ -50,7 +52,7 @@ void thresh_callback(int, void* ){
     }
     else if (is_child && hierarchy[i][2] == -1){
       is_child = false;
-      if (count_childs >= 2){
+      if (count_childs >= 1){
         corner_candidates.push_back(parent_index);
       }
     }
@@ -73,14 +75,16 @@ void thresh_callback(int, void* ){
 
   /// Show in a window
 
-  namedWindow( "Canny", CV_WINDOW_AUTOSIZE );
-  imshow( "Canny", canny_output );
+
+  namedWindow( "Binary", WINDOW_AUTOSIZE );
+  imshow( "Binary", bin_output );
+  cout << " Hola !" << endl;
 
   /// Corner detectors
 
 
   for (int i = 0; i < corner_pts.size(); i++){
-    circle( src_corners, corner_pts.at(i), 8,  Scalar(200), 2, 8, 0 );
+    circle( src, corner_pts.at(i), 1,  Scalar(200), 2, 8, 0 );
   }
 
   resort_corners(corner_pts);
@@ -104,13 +108,18 @@ void thresh_callback(int, void* ){
   }
 
   Mat Hr = findHomography(corner_pts_f, img_pts_f, RANSAC, 3);
+  Mat dst;
+  warpPerspective(src, dst, Hr, src.size(), INTER_LINEAR, BORDER_CONSTANT, Scalar());
+
 
   cout << "M = "<< endl << " "  << Hr << endl << endl;
 
 
-  namedWindow( "corners_window", CV_WINDOW_AUTOSIZE );
+  namedWindow( "corners_window", WINDOW_AUTOSIZE );
   imshow( "corners_window", src_corners );
 
+  namedWindow( "warpPerspective", WINDOW_AUTOSIZE );
+  imshow( "warpPerspective", dst );
 
 }
 
