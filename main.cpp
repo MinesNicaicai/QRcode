@@ -16,8 +16,13 @@ int main( int argc, char** argv ){
   /// Load source image and convert it to gray
   src = imread(src_path, 1);
 
+  const clock_t begin_time = clock();
+
   // Convert the source image into a binary matrix
   code_recognition(src, out_matrix);
+
+  std::cout << float( clock () - begin_time ) /  CLOCKS_PER_SEC * 1000 << " ms" << endl;
+
 
   // Output the results to a file
   output_result(dst_path);
