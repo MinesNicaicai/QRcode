@@ -64,3 +64,5 @@ void set_dst_points(vector<Point2f> &img_pts);
 void transformToMatrix(Mat, unsigned int[QRsize][QRsize]);
 
 void output_result(string);
+
+Point get_center(vector<Point> &, int);

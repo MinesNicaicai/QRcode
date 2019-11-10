@@ -4,15 +4,23 @@
 int main( int argc, char** argv ){
   DEBUG = false;
 
+  string src_path = "../6_LI_Yanhao.bmp";
+  // src_path = "../5_GU_Yuanzhe.bmp";
+  // src_path = "../16_BIAD_Zine-Eddine.bmp";
+  // src_path = "../1_JING_Ge.bmp";
+  
+  
+  
+  string dst_path = "out.txt";
+
   /// Load source image and convert it to gray
-  src = imread( argv[1], 1 );
+  src = imread(src_path, 1);
 
   // Convert the source image into a binary matrix
   code_recognition(src, out_matrix);
 
   // Output the results to a file
-  string dst = "out.txt";
-  output_result(dst);
+  output_result(dst_path);
 
   waitKey(0);
   return(0);
@@ -61,6 +69,7 @@ void code_recognition(Mat src, unsigned int out_matrix[QRsize][QRsize]){
     }
   }
 
+
   /// Draw contours and detect corners 
 
   vector<Point> corner;
@@ -87,7 +96,6 @@ void code_recognition(Mat src, unsigned int out_matrix[QRsize][QRsize]){
   resort_corners(corner_pts);
 
 
-
   // Convert the corner points from Point2i to Point2f
   vector<Point2f> corner_pts_f;
   for(int i = 0; i < corner_pts.size(); i++){
@@ -110,9 +118,9 @@ void code_recognition(Mat src, unsigned int out_matrix[QRsize][QRsize]){
   if (DEBUG){
     cout << "M = "<< endl << " "  << Hr << endl << endl;
     namedWindow( "Binary QR code", WINDOW_AUTOSIZE );
-    imshow( "Binary QR code", bin_output );
-    namedWindow( "Transformed QR code", WINDOW_AUTOSIZE );
-    imshow( "Transformed QR code", dst );
+    imshow( "Binary QR code", src );
+    // namedWindow( "Transformed QR code", WINDOW_AUTOSIZE );
+    // imshow( "Transformed QR code", dst );
   }
 
 
@@ -120,12 +128,12 @@ void code_recognition(Mat src, unsigned int out_matrix[QRsize][QRsize]){
 
   if (DEBUG){
     for (int i = 0; i <= QRsize; i++){
-      line(dst, Point(origin_x + i * grid_width, 0), Point(origin_x + i * grid_width, 1000), Scalar(127));
-      line(dst, Point(0, origin_y + i * grid_height), Point(1000, origin_y + i * grid_height), Scalar(127));
+      line(dst, Point(origin_x + i * grid_width, 0), Point(origin_x + i * grid_width, 1176), Scalar(127));
+      line(dst, Point(0, origin_y + i * grid_height), Point(1176, origin_y + i * grid_height), Scalar(127));
 
     }
-    namedWindow( "draw lines", WINDOW_AUTOSIZE);
-    imshow("draw lines", dst);
+    namedWindow( "Transformed QR code", WINDOW_AUTOSIZE);
+    imshow("Transformed QR code", dst);
   }
 
 
@@ -162,9 +170,8 @@ void resort_corners(vector<Point> &points){
    *  |     |
    *  p2----p3
   */
-  
   sort_corners(points);
-
+  
   int pos[12] = {};
 
   sort_corner0(points, pos);
@@ -206,11 +213,20 @@ void reorder_array(vector<T> &array, int* order){
 }
 
 void sort_corners(vector<Point> &points){
+  vector<Point> centers;
   vector<Point> vectors;
+
   for (int i = 0; i < 3; i++){
-    vectors.push_back(points[4 * i]);
+    centers.push_back(get_center(points, i));
   }
   
+  
+  vectors.push_back(centers[2] - centers[1]);
+  vectors.push_back(centers[0] - centers[2]);
+  vectors.push_back(centers[1] - centers[0]);
+
+
+
   int norm2, norm_max = 0;
   int index;
   // Find the longest edge of the triangle corner0-corner1-corner2
@@ -218,17 +234,18 @@ void sort_corners(vector<Point> &points){
     norm2 = vectors[i].ddot(vectors[i]);
     if (norm2 > norm_max){
       index = i;
+      norm_max = norm2;
     }
   }
 
-  Point p;
-
   // Swap the 0-th group of points and index-th group of points
   if (index != 0){
+    swap(vectors[0], vectors[index]);
     for (int i = 0; i < 4; i++){
       swap(points[i], points[4 * index + i]);
     }
   }
+
 
   // Swap the 1st group of points and 2nd group of points
   if (vectors[1].cross(vectors[2]) > 0){
@@ -336,6 +353,17 @@ void sort_corner2(vector<Point> &points, int* pos){
   pos[pos_local[0] + 8] = 10;
   pos[pos_local[3] + 8] = 9;
 
+}
+
+Point get_center(vector<Point> &points, int group){
+  int x = 0, y = 0;
+  Point p;
+  for (int i = 0; i < 4; i++){
+    p = points[i + group * 4];
+    x += p.x;
+    y += p.y;
+  }
+  return Point(x/4, y/4);
 }
 
 void set_dst_points(vector<Point2f> &img_pts){
