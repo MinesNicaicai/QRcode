@@ -34,7 +34,6 @@ for example:
 
 ```
 ./QRparser 6_LI_Yanhao.bmp output.txt
-
 ```
 
 and then check the output file "output.txt".
