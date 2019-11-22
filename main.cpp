@@ -4,14 +4,23 @@
 int main( int argc, char** argv ){
   DEBUG = false;
 
-  string src_path = "../6_LI_Yanhao.bmp";
+  string src_path = argv[1];
+  string dst_path = argv[2];
+
+  // src_path = "../6_LI_Yanhao.bmp";
   // src_path = "../5_GU_Yuanzhe.bmp";
   // src_path = "../16_BIAD_Zine-Eddine.bmp";
   // src_path = "../1_JING_Ge.bmp";
   
   
   
-  string dst_path = "out.txt";
+  // dst_path = "out.txt";
+
+  char* parse_debug = getenv ("DEBUG");
+  if (parse_debug!=NULL){
+    DEBUG = string(parse_debug).compare("1") == 0 ? true : false;
+  }
+  
 
   /// Load source image and convert it to gray
   src = imread(src_path, 1);
@@ -21,11 +30,14 @@ int main( int argc, char** argv ){
   // Convert the source image into a binary matrix
   code_recognition(src, out_matrix);
 
-  std::cout << float( clock () - begin_time ) /  CLOCKS_PER_SEC * 1000 << " ms" << endl;
+  const clock_t finish_time = clock ();
+
+
+  std::cout << float( finish_time - begin_time ) /  CLOCKS_PER_SEC * 1000 << " ms" << endl;
 
 
   // Output the results to a file
-  output_result(dst_path);
+  output_result(src_path, dst_path);
 
   waitKey(0);
   return(0);
@@ -90,11 +102,12 @@ void code_recognition(Mat src, unsigned int out_matrix[QRsize][QRsize]){
   }
 
 
+
   /// Corner detectors
 
 
   for (int i = 0; i < corner_pts.size(); i++){
-    circle( src, corner_pts.at(i), 1,  Scalar(200), 2, 8, 0 );
+    circle( src, corner_pts.at(i), 4,  Scalar(200), 2, 8, 0 );
   }
 
   // Sort the 12 points to be in order
@@ -405,13 +418,13 @@ void transformToMatrix(Mat in_bin_img, unsigned int out_matrix[QRsize][QRsize]){
   }
 }  
 
-void output_result(string dst){
+void output_result(string src, string dst){
   /**
    * Output the matrix to a file
    */
   ofstream dst_file;
   dst_file.open (dst);
-  dst_file << "Output matrix: \n\n";
+  dst_file << src << "\n\n";
   for (int j = 0; j < QRsize; j++){
     for (int i = 0; i < QRsize; i++){
       dst_file << out_matrix[i][j] << ", ";

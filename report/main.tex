@@ -143,12 +143,60 @@ a grid of size 42x42 on the square QR code. Calculate the mean value of pixels f
 If the mean value is superior to 128, the small square is considered white, else considered black.
 Set the corresponding element of the output matrix to 1 or 0.
 
-\item Write the output matrix to a file.
+\item Write the output matrix to a txt file.
 
 
 \end{itemize}
 
+
+\section{Demonstration}
+
+\noindent Run the executable file QRparser with the command:
+\begin{verbatim}
+  $ ./QRparser <input_image> <output_file>
+\end{verbatim}
+
+\noindent For example: 
+\begin{verbatim}
+  $ ./QRparser 6_LI_Yanhao.bmp output.txt
+\end{verbatim}
+
+\noindent Or run for debug:
+\begin{verbatim}
+  $ DEBUG=1 ./QRparser 6_LI_Yanhao.bmp output.txt
+\end{verbatim}
+
+
+\noindent You can also use the following commands to build the source code and test:
+\begin{verbatim}
+  $ mkdir build 
+  $ cd build
+  $ cmake ..
+  $ make
+  $ make test
+\end{verbatim}
+
+
 \section{Evaluation}
+
+This program is able to recognize a QR code in a blank background, as is given on moodle. The 
+regularization of image using homography transform is shown below: 
+
+% \begin{figure*}[ht!]
+%       \includegraphics[width=.3\textwidth]{pic-05.png}
+%       \includegraphics[width=.3\textwidth]{pic-03.png}
+%       % \includegraphics[width=.3\textwidth]{example-image-c}
+%       \caption{Image A.}
+%       \caption{Image B.}
+%       % \caption{Image C.}
+%  \end{figure*}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{pic-05.png}
+  \caption{Extract 3 boxes and detect 12 corner points}
+\end{figure}
+
 
 \begin{figure}[H]
   \centering
@@ -157,35 +205,9 @@ Set the corresponding element of the output matrix to 1 or 0.
 \end{figure}
 
 
-\section{Demonstration}
-
-\section{Example}
-The feasiblity of this LRC code is tested in the hadoop file system in the following steps:
-\begin{itemize}
-\item Compile the whole hadoop project, package it into a native distribution and deploy the hadoop system using docker container.
-\item Create an empty directory in hadoop file system. Set the erasure code policy to LRC-6-4-1024k.
-\item Put an 800 MB file in the directory. The file will be encoded by LRC code into 6 data chunks and 4 parity chunks.
-\item Find the physical locations of file chunks. Choose several chunks and manually delete them. 
-\item Fetch the file from the hadoop file system. 
-\item Verify the identity of the fetched file.
-\end{itemize}
-
-
-First we compile the whole hadoop project and deploy the hadoop system using docker container.
-Here our LRC code configuration is composed with 6 data units and 4 parity units, thus we need to deploy 10 datanodes.\\
-
-Type "hadoop namenode -format" and "\$HADOOP\_HOME/sbin/start-all.sh" to launch hadoop file system
-
-Type "hdfs ec -listPolicies" to check if LRC policy is registered in hadoop.
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=\linewidth]{test-1.png}
-%   \caption{list erasure code policies}
-% \end{figure}
-
-
-
-
+But the program is prone to background interference, since the recognition algorithm of the 
+shape of 回 may mistake some background objects, which needs improvement for a more robust
+detection.
 
 
 \end{document}
