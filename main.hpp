@@ -44,7 +44,7 @@ double get_rotation(Point);
 int get_distance(Point &, Point &);
 
 template <typename T>
-void sort_indexes(vector<T>, int* );
+void sort_indexes(vector<T>&, int* );
 
 void resort_corners(vector<Point> &);
 

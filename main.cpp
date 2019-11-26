@@ -183,10 +183,16 @@ void resort_corners(vector<Point> &points){
    *  c1
    * 
    * Then we reorder the 4 points of each corner
-   *  p0----p1 
+   *  p0----p1     p8----p9  
+   *  |     |      |     |
+   *  |     |      |     |
+   *  p2----p3     p10---p11
+   * 
+   * 
+   *  p4----p5 
    *  |     |
    *  |     |
-   *  p2----p3
+   *  p6----p7
   */
   sort_corners(points);
   
@@ -205,15 +211,17 @@ int get_distance(Point &p1, Point &p2){
 }
 
 template <typename T>
-void sort_indexes(vector<T> array, int* pos){
-  vector<T> array_tmp = array;
-  for (int i = 0; i < array_tmp.size(); i++){
+void sort_indexes(vector<T>& array, int* pos){
+  /** 
+   *  Sort the array and give the indices of sorted elements
+   */
+  for (int i = 0; i < array.size(); i++){
     pos[i] = i;
   }
-  for (int i = array_tmp.size() - 2; i >= 0; i--){
-    for (int j = i; j < array_tmp.size() - 1; j++){
-      if (array_tmp[j] > array_tmp[j + 1]){
-        swap(array_tmp[j], array_tmp[j + 1]);
+  for (int i = array.size() - 2; i >= 0; i--){
+    for (int j = i; j < array.size() - 1; j++){
+      if (array[j] > array[j + 1]){
+        swap(array[j], array[j + 1]);
         swap(pos[j], pos[j + 1]);
       }
     }
@@ -222,6 +230,12 @@ void sort_indexes(vector<T> array, int* pos){
 
 template <typename T>
 void reorder_array(vector<T> &array, int* order){
+  /** 
+   *  Reorder the array based on the given order
+   *  e.g. array = [2,5,8,9] order = [1,2,3,0]
+   *       then after reordering
+   *       array = [5,8,9,2]
+   */
   vector<T> array_out;
   array_out.resize(array.size());
   for (int i = 0; i < array_out.size(); i++){
@@ -231,6 +245,7 @@ void reorder_array(vector<T> &array, int* order){
 }
 
 void sort_corners(vector<Point> &points){
+
   vector<Point> centers;
   vector<Point> vectors;
 
@@ -282,24 +297,45 @@ void sort_corner0(vector<Point> &points, int* pos){
    *
    */ 
 
-  Point c1 = points[4];
-  Point c2 = points[8];
-  vector<int> dist2c;
+  int center_x = 0;
+  int center_y = 0;
+
+  // c1 is the barycenter of corner 1 (bottom left corner)
+  for (int i = 4; i < 8; i++){
+    center_x += points[i].x;
+    center_y += points[i].y;
+  }
+  Point c1(center_x, center_y);
+
+  /// c2 is the barycenter of corner 2 (top right corner)
+  center_x = 0;
+  center_y = 0;
+  for (int i = 8; i < 12; i++){
+    center_x += points[i].x;
+    center_y += points[i].y;
+  }
+  Point c2(center_x, center_y);
+
+  /// dist_p2c is the distance from a point of corner 0 (top left corner) to corner 1 or 2
+  vector<int> dist_p2c;
+
+
   int pos_local[4];
 
+  // The points of corner 0 closer to corner 1 are either p2 or p3 
   for (int i = 0; i < 4; i++){
-    dist2c.push_back(get_distance(points[i], c1));
+    dist_p2c.push_back(get_distance(points[i], c1));
   }
-  sort_indexes(dist2c, pos_local);
-
+  sort_indexes(dist_p2c, pos_local);
   for (int i = 0; i < 2; i++){
     pos[pos_local[i]] = 2;
   }
   
+  // The points of corner 0 closer to corner 2 are either p0 or p2 
   for (int i = 0; i < 4; i++){
-    dist2c[i] = get_distance(points[i], c2);
+    dist_p2c[i] = get_distance(points[i], c2);
   }
-  sort_indexes(dist2c, pos_local);
+  sort_indexes(dist_p2c, pos_local);
   for (int i = 0; i < 2; i++){
     pos[pos_local[i]] += 1;
   }
@@ -316,23 +352,25 @@ void sort_corner1(vector<Point> &points, int* pos){
    */  
   Point c0 = points[0];
   Point c2 = points[8];
-  vector<int> dist2c;
+
+  // dist_p2c is the distance from a point of corner 0 (top left corner) to corner 1 or 2
+  vector<int> dist_p2c;
   int pos_local[4];
 
 
   for (int i = 0; i < 4; i++){
-    dist2c.push_back(get_distance(points[i + 4], c0));
+    dist_p2c.push_back(get_distance(points[i + 4], c0));
   }
-  sort_indexes(dist2c, pos_local);
+  sort_indexes(dist_p2c, pos_local);
   for (int i = 0; i < 4; i++){
     pos[pos_local[i] + 4] = i < 2 ? 4 : 7;
   }
 
 
   for (int i = 0; i < 4; i++){
-    dist2c[i] = get_distance(points[i + 4], c2);
+    dist_p2c[i] = get_distance(points[i + 4], c2);
   }
-  sort_indexes(dist2c, pos_local);
+  sort_indexes(dist_p2c, pos_local);
 
   pos[pos_local[0] + 4] = 5;
   pos[pos_local[3] + 4] = 6;
@@ -348,25 +386,33 @@ void sort_corner2(vector<Point> &points, int* pos){
    *   p10----p11
    *
    */  
+
+  // The top left point of corner 0 (top left corner)
   Point c0 = points[0];
+
+  // The bottom left point of corner 1 (bottom left corner)
   Point c1 = points[6];
-  vector<int> dist2c;
+
+  // Distance from a point of corner 2 to another corner (corner 0 or 1)
+  vector<int> dist_p2c;
+
+  // The posit
   int pos_local[4];
 
 
   for (int i = 0; i < 4; i++){
-    dist2c.push_back(get_distance(points[i + 8], c0));
+    dist_p2c.push_back(get_distance(points[i + 8], c0));
   }
-  sort_indexes(dist2c, pos_local);
+  sort_indexes(dist_p2c, pos_local);
   for (int i = 0; i < 4; i++){
     pos[pos_local[i] + 8] = i < 2 ? 8 : 11;
   }
 
 
   for (int i = 0; i < 4; i++){
-    dist2c[i] = get_distance(points[i + 8], c1);
+    dist_p2c[i] = get_distance(points[i + 8], c1);
   }
-  sort_indexes(dist2c, pos_local);
+  sort_indexes(dist_p2c, pos_local);
 
   pos[pos_local[0] + 8] = 10;
   pos[pos_local[3] + 8] = 9;
